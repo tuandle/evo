@@ -1,8 +1,11 @@
 # evo 
 
-[![Build Status](https://travis-ci.org/MichaelGrupp/evo.svg?branch=master)](https://travis-ci.org/MichaelGrupp/evo)
-
 ***Python package for the evaluation of odometry and SLAM***
+
+| Linux / macOS | Windows |
+| :---: | :-----: |
+| [![Linux build Status](https://travis-ci.org/MichaelGrupp/evo.svg?branch=master)](https://travis-ci.org/MichaelGrupp/evo) | [![Windows build status](https://ci.appveyor.com/api/projects/status/usg1lqx59dqdqqal?svg=true)](https://ci.appveyor.com/project/MichaelGrupp/evo)
+
 
 This packages provides executables and a small library for handling, evaluating and comparing the trajectory output of odometry and SLAM algorithms.
 
@@ -32,7 +35,7 @@ evo has several advantages over other public benchmarking tools:
 
 * common tools for different formats
 * algorithmic options for association, alignment, scale adjustment for monocular SLAM etc.
-* flexible options for output, plot or export (e.g. LaTeX plots or Excel tables)
+* flexible options for output, [plotting](https://github.com/MichaelGrupp/evo/wiki/Plotting) or export (e.g. LaTeX plots or Excel tables)
 * a powerful, configurable CLI that can cover many use cases
 * modular `core` and `tools` libraries for custom extensions
 * faster than other established Python-based tools ([see here](doc/performance.md))
@@ -41,7 +44,9 @@ evo has several advantages over other public benchmarking tools:
 
 ---
 
-## Installation
+## Installation / Upgrade
+
+Installation is easy-peasy if you're familiar with this: https://xkcd.com/1987/#
 
 **Python 3.4+** and **Python 2.7** are both supported. If you want to use the ROS bagfile interface, first check which Python version is used by your ROS installation and install accordingly.
 You might also want to use a [virtual environment](doc/install_in_virtualenv.md).
@@ -51,12 +56,12 @@ If you just want to use the executables of the latest release version, the easie
 ```bash
 pip install evo --upgrade --no-binary evo
 ```
-This will download the package and its dependencies from PyPi and install them. Depending on your OS, you might be able to use `pip2` or `pip3` to specify the Python version you want. Tab completion for Bash terminals is supported via the [argcomplete](https://github.com/kislyuk/argcomplete/) package on most UNIX systems - open a new shell after the installation to use it.
+This will download the package and its dependencies from PyPi and install or upgrade them. Depending on your OS, you might be able to use `pip2` or `pip3` to specify the Python version you want. Tab completion for Bash terminals is supported via the [argcomplete](https://github.com/kislyuk/argcomplete/) package on most UNIX systems - open a new shell after the installation to use it (without `--no-binary evo` the tab completion might not be installed properly). If you want, you can subscribe to new releases via https://libraries.io/pypi/evo.
 
 ### From Source
 Run this in the repository's base folder:
 ```bash
-pip install . --upgrade
+pip install . --upgrade --no-binary evo
 ```
 
 ### Dependencies
@@ -67,13 +72,13 @@ evo has the following dependencies that are ***automatically resolved*** during 
 
 *numpy, matplotlib, scipy, pandas, seaborn, natsort, argcomplete, colorama, pygments, enum34 (only Python 2.7)*
 
-**PyQt4 (optional)**
+**PyQt5 / PyQt4 (optional)**
 
-It is optional but recommended to install PyQt4 before installation, which will give you the enhanced editing tools for plot figures from the "*Qt4Agg*" matplotlib backend (otherwise: "*TkAgg*"). If PyQt4 is already installed when installing this package, it will be used as a default. To change the plot backend afterwards, run `evo_config set plot_backend Qt4Agg`.   
+PyQt5 will give you the enhanced GUI for plot figures from the "*Qt5Agg*" matplotlib backend (otherwise: "*TkAgg*"). If PyQt5 is already installed when installing this package, it will be used as a default (see `evo_config show`). To change the plot backend afterwards, run `evo_config set plot_backend Qt5Agg`. PyQt4 can be set equivalently.
 
 **ROS (optional)**
 
-To load or export ROS bag files, you need to install ROS - see [here](http://www.ros.org/). We tested this package with ROS Indigo and Kinetic.
+All ROS-related features like reading bagfiles require a ROS installation, see [here](http://www.ros.org/). We tested this package with ROS Melodic, Kinetic and Indigo.
 
 ---
 
@@ -85,7 +90,6 @@ After installation with setup.py or from pip, the following executables can be c
 
 * `evo_ape` - absolute pose error
 * `evo_rpe` - relative pose error
-* `evo_rpe-for-each` - sub-sequence-wise averaged relative pose error
 
 **Tools:**
 
@@ -127,7 +131,7 @@ There are some example trajectories in the source folder in `test/data`.
 
   ```
   mkdir results
-  evo_ape kitti KITTI_00_gt.txt KITTI_00_ORB.txt -va --plot --save_results results/ORB.zip
+  evo_ape kitti KITTI_00_gt.txt KITTI_00_ORB.txt -va --plot --plot_mode xz --save_results results/ORB.zip
   ```
 
   <center>
@@ -138,7 +142,7 @@ There are some example trajectories in the source folder in `test/data`.
   *Second trajectory (S-PTAM):*
   
   ```
-  evo_ape kitti KITTI_00_gt.txt KITTI_00_SPTAM.txt -va --plot --save_results results/SPTAM.zip
+  evo_ape kitti KITTI_00_gt.txt KITTI_00_SPTAM.txt -va --plot --plot_mode xz --save_results results/SPTAM.zip
   ```
 
   <center>
@@ -177,6 +181,12 @@ If you have IPython installed, you can launch an IPython shell with a custom evo
 
 ---
 
+## Contributing Utilities
+
+A few "inoffical" scripts for special use-cases are collected  in the `contrib/` directory of the repository. They are inofficial in the sense that they don't ship with the package distribution and thus aren't regularly tested in continuous integration.
+
+---
+
 ## Trouble
 *":scream:, this piece of :shit: software doesn't do what I want!!1!1!!"*
 
@@ -200,4 +210,6 @@ Patches are welcome, preferably as pull requests.
 
 ## License
 
-Free, modifiable open source software as covered by the GNU GPL v3 - see the 'LICENSE' file for full information. If you use this package for your research, a footnote with the link to this repository is appreciated: `github.com/MichaelGrupp/evo`.
+[GPL-3.0 or later](https://www.gnu.org/licenses/gpl-3.0.html)
+
+If you use this package for your research, a footnote with the link to this repository is appreciated: `github.com/MichaelGrupp/evo`.

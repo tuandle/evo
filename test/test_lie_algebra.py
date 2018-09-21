@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with evo.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import print_function  # Python 2.7 backwards compatibility
+from __future__ import print_function
 
 import random
 import timeit
@@ -33,6 +33,7 @@ from evo.core import lie_algebra as lie
 
 class TestSE3(unittest.TestCase):
     def test_is_se3(self):
+        # yapf: disable
         p = np.array([[1, 0, 0, 1],
                       [0, 0, -1, 2],
                       [0, 1, 0, 3],
@@ -43,6 +44,7 @@ class TestSE3(unittest.TestCase):
                             [0, 111, 0, 3],
                             [0, 0, 0, 1]])
         self.assertFalse(lie.is_se3(p_false))
+        # yapf: enable
 
     def test_random_se3(self):
         self.assertTrue(lie.is_se3(lie.random_se3()))
@@ -62,22 +64,15 @@ class TestSE3(unittest.TestCase):
         b_from_a = a.dot(a_to_b)
         self.assertTrue(np.allclose(b_from_a, b))
 
-    def test_relative_se3_rot(self):
-        a = lie.random_se3()
-        b = lie.random_se3()
-        self.assertTrue(lie.is_se3(a) and lie.is_se3(b))
-        a_to_b_rot = lie.relative_se3_rot(a, b)
-        self.assertTrue(lie.is_so3(a_to_b_rot))
-        b_rot_from_a_rot = a[:3, :3].dot(a_to_b_rot)
-        self.assertTrue(np.allclose(b_rot_from_a_rot, b[:3, :3]))
-
 
 class TestSO3(unittest.TestCase):
     def test_is_so3(self):
+        # yapf: disable
         r = np.array([[1, 0, 0],
                       [0, 0, -1],
                       [0, 1, 0]])
         self.assertTrue(lie.is_so3(r))
+        # yapf: enable
 
     def test_random_so3(self):
         r = lie.random_so3()
@@ -103,8 +98,10 @@ class TestSO3(unittest.TestCase):
         self.assertTrue(np.allclose(r, lie.so3_exp(axis, angle), atol=1e-6))
         angle = lie.so3_log(r)
         # we ignore signs here, therefore check also transpose
-        self.assertTrue(np.allclose(r, lie.so3_exp(axis, angle).T)
-                        or np.allclose(r, lie.so3_exp(axis, angle)))
+        self.assertTrue(
+            np.allclose(r,
+                        lie.so3_exp(axis, angle).T)
+            or np.allclose(r, lie.so3_exp(axis, angle)))
 
     def test_so3_log_exp_skew(self):
         r = lie.random_so3()
@@ -132,7 +129,8 @@ class TestSim3(unittest.TestCase):
         self.assertTrue(lie.is_sim3(p, s))
         x = p.dot(x)  # apply Sim(3) transformation
         self.assertTrue(
-            np.equal(x, lie.se3(r).dot(np.array([s, 0, 0, 1]))).all())
+            np.equal(x,
+                     lie.se3(r).dot(np.array([s, 0, 0, 1]))).all())
 
 
 if __name__ == '__main__':
@@ -140,14 +138,16 @@ if __name__ == '__main__':
     benchmarks
     """
     print("\ncheck speed of SE(3) inverse:")
-    setup = "from evo.core import lie_algebra as lie; import numpy as np; se3 = lie.random_se3()"
+    setup = "from evo.core import lie_algebra as lie; " \
+            "import numpy as np; se3 = lie.random_se3()"
     print("time for 1000*lie.se3_inverse(se3): ",
           timeit.timeit("lie.se3_inverse(se3)", setup=setup, number=1000))
     print("time for 1000*np.linalg.inv(se3): ",
           timeit.timeit("np.linalg.inv(se3)", setup=setup, number=1000))
 
     print("\ncheck speed of  SO(3) log:")
-    setup = "from evo.core import lie_algebra as lie; import numpy as np; so3 = lie.random_so3()"
+    setup = "from evo.core import lie_algebra as lie; " \
+            "import numpy as np; so3 = lie.random_so3()"
     print("time for 1000*lie.so3_log(so3, skew=True): ",
           timeit.timeit("lie.so3_log(so3, True)", setup=setup, number=1000))
     print("time for 1000*lie.so3_log(so3): ",
@@ -156,15 +156,14 @@ if __name__ == '__main__':
             "import evo.core.transformations as tr; " \
             "so3 = lie.se3(lie.random_so3(), [0, 0, 0])"
     print("time for 1000*tr.rotation_from_matrix(so3): ",
-          timeit.timeit("tr.rotation_from_matrix(so3)", setup=setup, number=1000))
+          timeit.timeit("tr.rotation_from_matrix(so3)", setup=setup,
+                        number=1000))
     setup = "from evo.core import lie_algebra as lie; " \
             "import numpy as np; so3 = lie.random_so3(); " \
             "axis, angle = lie.so3_log(so3, False)"
     print("time for 1000*lie.so3_exp(axis, angle): ",
           timeit.timeit("lie.so3_exp(axis, angle)", setup=setup, number=1000))
-
     """
     unit test
     """
-    print("\n\nstarting unit test...")
     unittest.main(verbosity=2)

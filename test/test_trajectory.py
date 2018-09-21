@@ -28,6 +28,7 @@ import copy
 import numpy as np
 
 import context
+import helpers
 from evo.core import trajectory, geometry
 from evo.core import lie_algebra as lie
 from evo.tools import file_interface
@@ -41,13 +42,16 @@ ex_tum_traj = file_interface.read_tum_trajectory_file(tum_traj_file)
 ex_kitti_traj = file_interface.read_kitti_poses_file(kitti_traj_file)
 ex_kitti_traj_wrong = copy.deepcopy(ex_kitti_traj)
 ex_kitti_traj_wrong._poses_se3 = [
-    np.zeros((4, 4)) for i in range(ex_kitti_traj.num_poses)]
+    np.zeros((4, 4)) for i in range(ex_kitti_traj.num_poses)
+]
 
 ex_tum_traj_wrong_quat = copy.deepcopy(ex_tum_traj)
 ex_tum_traj_wrong_quat._orientations_quat_wxyz[3] = [5000, 0, 0, 0]
 
 ex_tum_traj_wrong_stamps = copy.deepcopy(ex_tum_traj)
-ex_tum_traj_wrong_stamps.timestamps = [1, 2, 3]
+# unsorted timestamps
+ex_tum_traj_wrong_stamps.timestamps = np.roll(
+    helpers.fake_timestamps(ex_tum_traj.num_poses, 0.1), 1)
 
 
 class TestPosePath3D(unittest.TestCase):
@@ -77,10 +81,12 @@ class TestPosePath3D(unittest.TestCase):
             self.fail("unexpected init failure with xyz + quaternion")
         # all
         try:
-            trajectory.PosePath3D(ex_tum_traj.positions_xyz, ex_tum_traj.orientations_quat_wxyz,
+            trajectory.PosePath3D(ex_tum_traj.positions_xyz,
+                                  ex_tum_traj.orientations_quat_wxyz,
                                   ex_tum_traj.poses_se3)
         except trajectory.TrajectoryException:
-            self.fail("unexpected init failure with xyz + quaternion + poses_se3")
+            self.fail(
+                "unexpected init failure with xyz + quaternion + poses_se3")
 
     def test_equals(self):
         ex_kitti_traj_copy = copy.deepcopy(ex_kitti_traj)
@@ -94,8 +100,8 @@ class TestPosePath3D(unittest.TestCase):
         traj_reduced.reduce_to_ids([0, 2])
         self.assertEqual(traj_reduced.num_poses, 2)
         # direct connection from 0 to 2 in initial should be reduced path length
-        len_initial_segment = np.linalg.norm(ex_kitti_traj.positions_xyz[2]
-                                             - ex_kitti_traj.positions_xyz[0])
+        len_initial_segment = np.linalg.norm(ex_kitti_traj.positions_xyz[2] -
+                                             ex_kitti_traj.positions_xyz[0])
         len_reduced = traj_reduced.path_length()
         self.assertEqual(len_initial_segment, len_reduced)
 
@@ -104,8 +110,8 @@ class TestPosePath3D(unittest.TestCase):
         t = lie.random_se3()
         traj_transformed.transform(t)
         # traj_transformed.transform(lie.se3_inverse(t))
-        self.assertAlmostEqual(
-            traj_transformed.path_length(), ex_kitti_traj.path_length())
+        self.assertAlmostEqual(traj_transformed.path_length(),
+                               ex_kitti_traj.path_length())
 
     def test_scale(self):
         traj_scaled = copy.deepcopy(ex_kitti_traj)

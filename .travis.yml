@@ -1,11 +1,53 @@
+os:
+  - linux
+
+sudo: required
+services: docker
+
 language: python
+
 python:
   - "2.7"
   - "3.4"
   - "3.5"
   - "3.6"
+
+# Python for Mac is not yet officially supported by Travis.
+# We test only 2.7 and 3.6 on macOS for now.
+matrix:
+  include:
+    - os: osx
+      language: generic
+      env: PYTHON=2.7.10
+    - os: osx
+      language: generic
+      env: PYTHON=3.6.0
+    - os: linux
+      language: python
+      env: 
+        - EVO_DOCKERFILE="Dockerfile.rosmelodic"
+        - EVO_DOCKER_IMAGE="evoslam/evopython:rosmelodic"
+
+before_install:
+  - bash .ci/mac-os_before_install.sh
+
 install:
-  - pip install . --upgrade
-  - evo_config set plot_backend Agg  # no X server
+  - |
+    if [ -z $EVO_DOCKERFILE ]; then
+      source .ci/set_pip_name.sh;
+      ${pip} install . --upgrade;
+      evo_config set plot_backend Agg;  # no X server
+    fi
+
 script:
-  - pytest -sv
+  - |
+    if [ -z $EVO_DOCKERFILE ]; then
+      ${pip} install pytest --upgrade;
+      pytest -sv;
+    else
+      docker build . --file $EVO_DOCKERFILE --tag $EVO_DOCKER_IMAGE
+      if [[ $TRAVIS_BRANCH == "master" ]] && [[ $TRAVIS_PULL_REQUEST == "false" ]]; then
+        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        docker push $EVO_DOCKER_IMAGE
+      fi
+    fi
